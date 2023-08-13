@@ -9,74 +9,62 @@ import Sidebarchat from './Sidebarchat';
 import IconButton from '@mui/material/IconButton';
 import db from "./firebase"
 import { useState, useEffect } from 'react';
+import { useStateValue } from './StateProvider';
 
-function Sidebar() {
+function Sidebar(props) {
+ const [Room, setRooms] = useState([]);
+ const [{user},dispatch] = useStateValue();
 
-    const [Room, setRooms] = useState([])
-    
+ 
+ useEffect(() => {
+    const unsubscribe = db.collection('Room').onSnapshot(snapshot => (
+        setRooms(snapshot.docs.map(doc => (
+            {
+                id: doc.id,
+                data: doc.data()
+            }
+        )
 
-    useEffect(() => {
-        const unsubscribe = db.collection("Room").onSnapshot((snapshot) =>
-            setRooms(
-                snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    data: doc.data(),
-                }))
-            )
-        );
-     return () => {
+        ))
+    ));
+
+    return () => {
         unsubscribe();
     }
-}, []);
+},[]); 
 
 return (
     <div className="sidebar">
-
-        <div className="sidebar__header">
-
-            <Avatar />
-            
-            <div className="sidebar__headerRight">
-                <IconButton variant="text">
-                    <DonutLargeIcon />
+        <div className="sidebar_header">
+            <Avatar src={user?.photoURL}/>
+            <div className="sidebar_headerRight">
+                <IconButton>
+                    <DonutLargeIcon/>
                 </IconButton>
-
-                <IconButton variant="text">
-                    <ChatIcon />
+                <IconButton>
+                    <ChatIcon/>
                 </IconButton>
-                <IconButton variant="text">
-                    <MoreVertIcon />
+                <IconButton>
+                    <MoreVertIcon/>
                 </IconButton>
+                
             </div>
         </div>
-
-        <div className="sidebar__search">
-
-            <div className="sidebar__searchContainer">
-                <IconButton variant="text">
-                    <SearchIcon />
-                </IconButton>
-                <input placeholder="Search or start new chat" type="text" />
+        <div className="sidebar_search">
+            <div className="sidebar_searchContainer">
+                <SearchIcon />
+                <input type="text" placeholder="Search or start new chat"/>
             </div>
         </div>
-
-        <div className="sidebar__chats">
-
-            <Sidebarchat addNewChat />
-            {Room.map((room) => (
-                <Sidebarchat key={room.id} id={room.id} name={room.data.name} />
+        <div className="sidebar_chats">
+            <Sidebarchat addNewChat/>
+            {Room.map(room=> (
+                <Sidebarchat key={room.id} id={room.id} name={room.data.name}/>
             ))}
-
-
         </div>
-
-    </div> 
+    </div>
 );
 }
 
+
 export default Sidebar;
-// module.exports = {
-//     plugins: [
-//       '@babel/plugin-proposal-private-property-in-object'
-//     ]
-//   };
